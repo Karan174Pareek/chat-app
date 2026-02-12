@@ -1,5 +1,24 @@
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
+import cloudinary from "../lib/cloudinary.js";
+import { getReceiverSocketId } from "../lib/socket.js";
+
+// This will be set by the socket initialization
+let io;
+
+export const setIO = (socketIoInstance) => {
+  io = socketIoInstance;
+};
+
+const serializeMessage = (messageDoc) => ({
+  _id: messageDoc._id?.toString(),
+  senderId: messageDoc.senderId?.toString(),
+  receiverId: messageDoc.receiverId?.toString(),
+  text: messageDoc.text || "",
+  image: messageDoc.image || "",
+  createdAt: messageDoc.createdAt,
+  updatedAt: messageDoc.updatedAt,
+});
 
 
 export const getUsersForSidebar = async (req, res) => {
@@ -24,11 +43,30 @@ export const getMessages = async (req, res) => {
         { senderId: myId, receiverId: userToChatId },
         { senderId: userToChatId, receiverId: myId },
       ],
-    });
+    }).sort({ createdAt: 1 });
 
-    res.status(200).json(messages);
+    res.status(200).json(messages.map(serializeMessage));
   } catch (error) {
     console.log("Error in getMessages controller: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const deleteConversation = async (req, res) => {
+  try {
+    const { id: userToChatId } = req.params;
+    const myId = req.user._id;
+
+    await Message.deleteMany({
+      $or: [
+        { senderId: myId, receiverId: userToChatId },
+        { senderId: userToChatId, receiverId: myId },
+      ],
+    });
+
+    res.status(200).json({ message: "Conversation deleted successfully" });
+  } catch (error) {
+    console.log("Error in deleteConversation controller: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -55,12 +93,14 @@ export const sendMessage = async (req, res) => {
 
     await newMessage.save();
 
-    const receiverSocketId = getReceiverSocketId(receiverId);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", newMessage);
+    const serializedMessage = serializeMessage(newMessage);
+
+    const receiverSocketId = getReceiverSocketId(receiverId.toString());
+    if (receiverSocketId && io) {
+      io.to(receiverSocketId).emit("newMessage", serializedMessage);
     }
 
-    res.status(201).json(newMessage);
+    res.status(201).json(serializedMessage);
   } catch (error) {
     console.log("Error in sendMessage controller: ", error.message);
     res.status(500).json({ error: "Internal server error" });
