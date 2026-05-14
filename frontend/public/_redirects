@@ -1,0 +1,2 @@
+# Proxy API requests to Render. Replace with your actual Render backend URL.
+/api/*  https://YOUR-RENDER-URL.onrender.com/api/:splat  200

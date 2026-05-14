@@ -3,6 +3,8 @@ import { io } from "socket.io-client";
 import { useAuth } from "./AuthContext";
 import toast from "react-hot-toast";
 
+const apiBase = import.meta.env.VITE_API_URL || "";
+
 const ChatContext = createContext();
 const toId = (value) => {
   if (value == null) return "";
@@ -214,7 +216,7 @@ export const ChatProvider = ({ children }) => {
   const getUsers = useCallback(async () => {
     setIsLoadingUsers(true);
     try {
-      const res = await fetch("/api/message/users", {
+      const res = await fetch(`${apiBase}/api/message/users`, {
         credentials: "include",
       });
       const data = await parseResponseBody(res);
@@ -236,7 +238,7 @@ export const ChatProvider = ({ children }) => {
       setIsLoadingMessages(true);
     }
     try {
-      const res = await fetch(`/api/message/${userId}`, {
+      const res = await fetch(`${apiBase}/api/message/${userId}`, {
         credentials: "include",
       });
       const data = await parseResponseBody(res);
@@ -263,7 +265,7 @@ export const ChatProvider = ({ children }) => {
 
     setIsSendingMessage(true);
     try {
-      const res = await fetch(`/api/message/send/${selectedUser._id}`, {
+      const res = await fetch(`${apiBase}/api/message/send/${selectedUser._id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

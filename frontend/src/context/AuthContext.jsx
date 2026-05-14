@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
+const apiBase = import.meta.env.VITE_API_URL || "";
+
 const AuthContext = createContext();
 // eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
@@ -39,7 +41,7 @@ export const AuthProvider = ({ children }) => {
   // Check if user is already logged in
   const checkAuth = useCallback(async () => {
     try {
-      const res = await fetch("/api/auth/check", {
+      const res = await fetch(`${apiBase}/api/auth/check`, {
         credentials: "include",
       });
       const data = await parseResponseBody(res);
@@ -63,7 +65,7 @@ export const AuthProvider = ({ children }) => {
   const signup = async (formData) => {
     setIsSigningUp(true);
     try {
-      const res = await fetch("/api/auth/signup", {
+      const res = await fetch(`${apiBase}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -87,7 +89,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (formData) => {
     setIsLoggingIn(true);
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(`${apiBase}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -110,7 +112,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await fetch("/api/auth/logout", {
+      await fetch(`${apiBase}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
@@ -124,7 +126,7 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (profileData) => {
     setIsUpdatingProfile(true);
     try {
-      const res = await fetch("/api/auth/Update-profile", {
+      const res = await fetch(`${apiBase}/api/auth/Update-profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
